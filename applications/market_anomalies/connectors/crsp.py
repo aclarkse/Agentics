@@ -6,18 +6,61 @@ class CRSPIngestor(WRDSDataIngestor):
     # noinspection SqlNoDataSourceInspection,SqlDialectInspection
     def fetch_daily(self, start: str, end: str) -> pd.DataFrame:
         q = f"""
-        SELECT a.permno, a.date, b.ticker, b.ncusip AS cusip,
-               a.prc AS price, a.vol AS volume, a.ret AS return, a.shrout,
-               b.exchcd AS exchange_code
-        FROM crsp.dsf a
-        LEFT JOIN crsp.dsenames b
-          ON a.permno=b.permno AND b.namedt<=a.date AND a.date<=b.nameendt
-        WHERE a.date BETWEEN '{start}' AND '{end}' AND b.exchcd IN (1,2,3)
-        ORDER BY a.permno, a.date
+            SELECT
+                -- core stock data
+                a.permno, -- security ID
+                a. permco, -- company ID
+                a.date, -- time key
+                a.prc, -- price
+                a.shrout, -- shares outstanding
+                a.ret, -- return
+                a.shrcd, -- share code for filtering
+                a.hexcd, -- exchange code for filtering
+                
+                -- to get the final corrected return
+                COALESCE(b.dlretx, a.ret) AS final_ret,
+                
+                -- compustat link keys
+                c.gvkey,
+                c.linktype,
+                c.linkdt,
+                c.linkenddt
+
+            FROM
+                -- primary monthly stock data
+                crsp.msf AS a
+
+                -- filter by delisting events
+            LEFT JOIN
+                crsp.dsedelist AS b
+                ON a.permno = b.permno
+                AND a.date = b.dlstdt
+
+                -- add accounting data from compustat
+            LEFT JOIN
+                crsp.ccmxpf_linktable AS c
+                ON a.permno = c.lpermno
+                AND a.date >= c.linkdt
+                AND (a.date <= c.linkenddt OR c.linkenddt IS NULL)
+                
+                -- filter major exchanges and by desired dates
+            WHERE
+                a.hexcd IN (1, 2, 3)
+                AND a.shrcd IN (10, 11)
+                AND a.date BETWEEN '{start}' AND '{end}'
         """
+
         return self.conn.raw_sql(q)
 
+    def fetch_daily_stock_data(self, start: str, end: str) -> pd.DataFrame:
+        return self.fetch_daily(start, end)
+
     @staticmethod
-    def schema_doc():
-        return {"dataset":"CRSP Daily Stock File","library":"crsp","primary_table":"dsf",
-                "date_field":"date","identifier_fields":["permno","ticker","cusip"]}
+    def get_schema_documentation():
+        return {
+            "dataset":"CRSP Daily Stock File",
+            "library":"crsp",
+            "primary_table":"msf",
+            "date_field":"date",
+            "identifier_fields":["permno","ticker","cusip"]
+        }
