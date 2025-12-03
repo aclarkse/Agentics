@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 # Environment Variables & Configuration
 
-Add a `.env` file in `application/market_anomalies ` with:
+Add a `.env` file in `application/market_anomalies` with:
 
 ```
 WRDS_USERNAME=your_wrds_username
