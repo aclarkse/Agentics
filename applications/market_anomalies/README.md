@@ -1,20 +1,21 @@
-# WRDS Market Anomaly Hunter
+# 📈 WRDS Market Anomaly Hunter
 
-LLM-powered anomaly detection using CRSP, Compustat, and IBES
+LLM-powered anomaly detection using CRSP, Compustat, and IBES from WRDS[https://wrds-www.wharton.upenn.edu/]
 
 This application identifies market anomalies for any U.S. publicly traded company by combining three WRDS datasets:
 
-- CRSP (market microstructure anomalies; volatility z-scores)
+- 🏛️ CRSP (market microstructure anomalies; volatility z-scores)
 
-- Compustat (fundamental performance vs. sector)
+- 🏢 Compustat (fundamental performance vs. sector)
 
-- IBES (analyst earnings expectations + analyst recommendations)
+- 👥 IBES (analyst earnings expectations + analyst recommendations)
 
-A composite anomaly score synthesizes all available information into a single interpretable signal, and an LLM-based summary agent provides a natural-language explanation citing evidence from each datasource.
+A composite anomaly score synthesizes all available information into a single interpretable signal, and an LLM-based
+summary agent provides a natural-language explanation citing evidence from each datasource.
 
-## Installation
+## 🛠️ Installation
 
-Clone the repository
+1. Clone the repository fork:
 
 ```
 git clone https://github.com/aclarkse/Agentics
@@ -22,20 +23,20 @@ cd Agentics/applications/market_anomalies
 
 ```
 
-Create a virtual environment
+2. Create a virtual environment:
 
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install Python dependencies
+3. Install Python dependencies:
 
 ```
 pip install -r requirements.txt
 ```
 
-# Environment Variables & Configuration
+## ⚙️Environment Variables & Configuration
 
 Add a `.env` file in `application/market_anomalies` with:
 
@@ -61,17 +62,26 @@ paths:
   data_dir: "applications/data"
 ```
 
-## Build the database
+## 🏗️ Build the database
 Before running the app, you need to ingest the WRDS data and build the SQLite database.
-To do so, cd into the `applications/market_anomalies/` directory and run:
+
+1. Navigate to the directory:
+
+```
+applications/market_anomalies/
+```
+
+2. Run the orchestrator:
 
 ```
 python orchestrator.py
 ```
 
-Once the database is built, it should be cached and usable until the next CRSP update, for
-which you can simply run the data orchestrator again to pull the latest time window. To run the
-application:
+Once the database is built, it is cached. You only need to run the orchestrator again if you want to pull a fresh time window (e.g., next month).
+
+## 🚀 Run the Application
+
+Launch the Streamlit interface:
 
 ```
 streamlit run app.py
